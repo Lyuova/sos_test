@@ -1285,21 +1285,6 @@ function simpleBFS(start, end) {
     return null;
 }
 
-function permutator(inputArr) {
-    let result = [];
-    const permute = (arr, m = []) => {
-        if (arr.length === 0) result.push(m);
-        else {
-            for (let i = 0; i < arr.length; i++) {
-                let curr = arr.slice();
-                let next = curr.splice(i, 1);
-                permute(curr.slice(), m.concat(next));
-            }
-        }
-    }
-    permute(inputArr);
-    return result;
-}
 
 // 3. Главный расчет (Без labelToId)
 function calculateRoute() {
@@ -1328,37 +1313,64 @@ function calculateRoute() {
         }
     }
 
-    let finalPath = [];
+let finalPath = [];
     if (waypoints.length === 0) {
         finalPath = simpleBFS(startLabel, endLabel);
     } else {
-        const perms = permutator(waypoints);
-        let minLen = Infinity;
+        // Оптимизированный "Жадный алгоритм"
+        let currentTotalPath = [];
+        let currentPos = startLabel;
+        let remainingWps = [...waypoints];
 
-        for (let perm of perms) {
-            let currentTotalPath = [];
-            let currentPos = startLabel;
-            let validPerm = true;
-            
-            const sequence = [...perm, endLabel];
-            
-            for (let target of sequence) {
-                const segment = simpleBFS(currentPos, target);
-                if (!segment) { validPerm = false; break; }
-                
-                if (currentTotalPath.length > 0) {
-                    currentTotalPath.push(...segment.slice(1));
-                } else {
-                    currentTotalPath.push(...segment);
+        // Пока есть непройденные точки, ищем ближайшую
+        while (remainingWps.length > 0) {
+            let closestWp = null;
+            let shortestSegment = null;
+            let minLen = Infinity;
+
+            // Ищем, какая из оставшихся точек ближе всего к текущей позиции
+            for (let i = 0; i < remainingWps.length; i++) {
+                let wp = remainingWps[i];
+                let segment = simpleBFS(currentPos, wp);
+                if (segment && segment.length < minLen) {
+                    minLen = segment.length;
+                    closestWp = wp;
+                    shortestSegment = segment;
                 }
-                currentPos = target;
             }
 
-            if (validPerm && currentTotalPath.length < minLen) {
-                minLen = currentTotalPath.length;
-                finalPath = currentTotalPath;
+            // Если не смогли проложить путь ни к одной точке
+            if (!closestWp) {
+                resultDiv.innerHTML = `<div class="error">Маршрут невозможен. Одна из промежуточных степей недостижима.</div>`;
+                return;
             }
+
+            // Добавляем путь до ближайшей точки в общий маршрут (без дублирования стыка)
+            if (currentTotalPath.length > 0) {
+                currentTotalPath.push(...shortestSegment.slice(1));
+            } else {
+                currentTotalPath.push(...shortestSegment);
+            }
+            
+            // Перемещаемся в эту точку и удаляем её из списка не посещенных
+            currentPos = closestWp;
+            remainingWps = remainingWps.filter(w => w !== closestWp);
         }
+
+        // Финальный бросок: от последней промежуточной точки до финиша
+        let finalSegment = simpleBFS(currentPos, endLabel);
+        if (!finalSegment) {
+            resultDiv.innerHTML = `<div class="error">Конечная степь недостижима.</div>`;
+            return;
+        }
+        
+        if (currentTotalPath.length > 0) {
+            currentTotalPath.push(...finalSegment.slice(1));
+        } else {
+            currentTotalPath.push(...finalSegment);
+        }
+        
+        finalPath = currentTotalPath;
     }
 
     if (!finalPath || finalPath.length === 0) {
