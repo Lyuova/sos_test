@@ -183,7 +183,8 @@
     <div class="input-group">
         <label>Начальная степь:</label>
         <div class="input-wrapper">
-            <input type="text" id="startNode" placeholder="1">
+            <input type="text" id="startNode" placeholder="1" list="favLocsList">
+            <img src="favst.png" alt="В избранное" class="input-icon" onclick="toggleFavLoc('startNode')" title="Добавить/убрать из избранных">
             <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithId('startNode')">
         </div>
     </div>
@@ -198,7 +199,8 @@
      <div class="input-group">
         <label>Конечная степь:</label>
         <div class="input-wrapper">
-            <input type="text" id="endNode" placeholder="100">
+            <input type="text" id="endNode" placeholder="100" list="favLocsList">
+            <img src="favst.png" alt="В избранное" class="input-icon" onclick="toggleFavLoc('endNode')" title="Добавить/убрать из избранных">
             <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithId('endNode')">
         </div>
      </div>
@@ -207,7 +209,7 @@
         <img src="bildst.png" alt="Построить маршрут" class="main-btn-img" onclick="calculateRoute()">
     </div>
     
-   <div class="two-cols-wrapper">
+    <div class="two-cols-wrapper">
         <label style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
             <input type="checkbox" id="colsCheckbox" onchange="toggleColumns()">
             Показывать маршрут в
@@ -219,6 +221,19 @@
     <div id="result"></div>
     
     <div style="text-align: center; margin-top: 2rem;">
+        <img src="savedst.png" alt="Сохраненные маршруты" class="tab-img" onclick="openTab('saved')">
+    </div>
+    
+    <div id="savedContainer" class="drawer-container">
+        <p style="margin-top: 0; font-size: 0.9rem;">Сохраненные маршруты</p>
+        <label style="cursor: pointer; display: inline-flex; align-items: center; color: #cbd5e1; font-size: 0.9rem; margin-bottom: 15px;">
+            <input type="checkbox" id="keepSavedOpen" style="width: auto; transform: scale(1.2); margin-right: 8px;" onchange="toggleKeepSaved()">
+            Оставлять вкладку всегда открытой
+        </label>
+        <div id="savedRoutesList" style="width: 100%; display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 1rem;">
         <img src="drawst.png" alt="Нарисовать степь" class="tab-img" onclick="openTab('draw')">
     </div>
     
@@ -247,6 +262,22 @@
         </div>
         <div id="viewerResult" class="drawer-result"></div>
         <div id="viewerGrid" class="drawer-grid" style="display:none; pointer-events: none;"></div>
+    </div>
+</div>
+
+<datalist id="favLocsList"></datalist>
+
+<div id="routeWarnModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; align-items:center; justify-content:center;">
+    <div class="card" style="max-width: 400px; width: 90%; text-align:center;">
+        <h3 style="color:#f87171; margin-top:0;">Внимание!</h3>
+        <p style="color:#cbd5e1; margin-bottom: 1.5rem;">Ваш текущий маршрут будет сброшен, уверены?</p>
+        <label style="color:#94a3b8; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:1.5rem; cursor:pointer;">
+            <input type="checkbox" id="skipWarnCheckbox" style="width:auto; margin:0;"> Не показывать больше
+        </label>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button class="main-btn" style="width:auto; padding: 0.5rem 1.5rem;" onclick="confirmLoadRoute()">Да</button>
+            <button style="background: #324154; color: #fff; border: none; padding: 0.5rem 1.5rem; cursor: pointer; font-weight: bold;" onclick="closeRouteWarn()">Нет</button>
+        </div>
     </div>
 </div>
     
@@ -1245,13 +1276,14 @@ function addWaypoint() {
     div.style.gap = "5px";
     div.style.alignItems = "center";
     div.innerHTML = `
-        <input type="text" class="waypoint-input" placeholder="Номер степи...">
+        <input type="text" class="waypoint-input" placeholder="Номер степи..." list="favLocsList">
+        <img src="favst.png" alt="В избранное" class="input-icon" onclick="toggleFavLoc(this)" title="Добавить/убрать из избранных">
         <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithElement(this)">
         <img src="close.png" alt="Удалить" class="input-icon" onclick="this.parentElement.remove()">
     `;
     container.appendChild(div);
 }
-
+    
 function swapInputs() {
     const s = document.getElementById("startNode");
     const e = document.getElementById("endNode");
@@ -1378,7 +1410,7 @@ const actionRow = document.createElement("div");
     const favBtn = document.createElement("img");
     favBtn.src = "favst.png";
     favBtn.className = "action-icon";
-    favBtn.onclick = () => {};
+  favBtn.onclick = saveCurrentRoute;
     
     const clsBtn = document.createElement("img");
     clsBtn.src = "closest.png";
@@ -1619,22 +1651,17 @@ function toggleColumns() {
 function openTab(tab) {
     const drawCont = document.getElementById('drawerContainer');
     const viewCont = document.getElementById('viewerContainer');
+    const savedCont = document.getElementById('savedContainer');
 
     if (tab === 'draw') {
-        if (drawCont.style.display === 'flex') {
-            drawCont.style.display = 'none';
-        } else {
-            drawCont.style.display = 'flex';
-            viewCont.style.display = 'none';
-            if (document.getElementById('drawerGrid').children.length === 0) initDrawerGrid();
-        }
-    } else {
-        if (viewCont.style.display === 'flex') {
-            viewCont.style.display = 'none';
-        } else {
-            viewCont.style.display = 'flex';
-            drawCont.style.display = 'none';
-        }
+        if (drawCont.style.display === 'flex') drawCont.style.display = 'none';
+        else { drawCont.style.display = 'flex'; viewCont.style.display = 'none'; if (document.getElementById('drawerGrid').children.length === 0) initDrawerGrid(); }
+    } else if (tab === 'view') {
+        if (viewCont.style.display === 'flex') viewCont.style.display = 'none';
+        else { viewCont.style.display = 'flex'; drawCont.style.display = 'none'; }
+    } else if (tab === 'saved') {
+        if (savedCont.style.display === 'flex') savedCont.style.display = 'none';
+        else savedCont.style.display = 'flex';
     }
 }
 
@@ -1651,7 +1678,7 @@ function openViewerWithId(inputId) {
 }
 
 function openViewerWithElement(btnElement) {
-    const val = btnElement.previousElementSibling.value.trim();
+    const val = btnElement.parentElement.querySelector('input').value.trim();
     openTab('view');
     const viewCont = document.getElementById('viewerContainer');
     viewCont.style.display = 'flex';
@@ -1697,6 +1724,144 @@ function saveRouteMemory(visible = true) {
     localStorage.setItem('cwFullRoute', JSON.stringify({ start, end, wps, visible }));
 }
 
+    // === НОВЫЕ ФУНКЦИИ ДЛЯ ИЗБРАННОГО ===
+function updateFavLocsList() {
+    let favLocs = JSON.parse(localStorage.getItem('cwFavLocs') || '[]');
+    let dl = document.getElementById('favLocsList');
+    dl.innerHTML = '';
+    favLocs.forEach(loc => {
+        let opt = document.createElement('option');
+        opt.value = loc;
+        dl.appendChild(opt);
+    });
+}
+
+function toggleFavLoc(target) {
+    let inputEl = typeof target === 'string' ? document.getElementById(target) : target.parentElement.querySelector('input');
+    let val = inputEl.value.trim();
+    if (!val) return;
+    
+    let favLocs = JSON.parse(localStorage.getItem('cwFavLocs') || '[]');
+    if (favLocs.includes(val)) {
+        favLocs = favLocs.filter(l => l !== val);
+    } else {
+        favLocs.push(val);
+    }
+    localStorage.setItem('cwFavLocs', JSON.stringify(favLocs));
+    updateFavLocsList();
+    
+    let origBg = inputEl.style.backgroundColor;
+    inputEl.style.backgroundColor = '#334155';
+    setTimeout(() => inputEl.style.backgroundColor = origBg, 200);
+}
+
+let routeToLoad = null;
+
+function saveCurrentRoute() {
+    const start = document.getElementById('startNode').value.trim();
+    const end = document.getElementById('endNode').value.trim();
+    const wps = Array.from(document.querySelectorAll('.waypoint-input')).map(i => i.value.trim()).filter(v => v);
+    
+    if(!start || !end) return alert("Для сохранения нужен построенный маршрут с началом и концом!");
+    
+    let defName = [start, ...wps, end].join('-');
+    let name = prompt("Введите имя для этого маршрута:", defName);
+    if(!name) return; 
+    
+    let favRoutes = JSON.parse(localStorage.getItem('cwFavRoutes') || '[]');
+    favRoutes.push({ name, start, end, wps });
+    localStorage.setItem('cwFavRoutes', JSON.stringify(favRoutes));
+    renderSavedRoutes();
+}
+
+function renderSavedRoutes() {
+    const list = document.getElementById('savedRoutesList');
+    let favRoutes = JSON.parse(localStorage.getItem('cwFavRoutes') || '[]');
+    list.innerHTML = '';
+    
+    if(favRoutes.length === 0) {
+        list.innerHTML = '<div style="text-align:center; color:#94a3b8; font-size:0.9rem;">Нет сохраненных маршрутов</div>';
+        return;
+    }
+    
+    favRoutes.forEach((r, idx) => {
+        const div = document.createElement('div');
+        div.style = "display:flex; justify-content:space-between; align-items:center; background:#1C273A; padding:10px; border:1px solid #334155;";
+        
+        const nameBtn = document.createElement('div');
+        nameBtn.innerText = r.name;
+        nameBtn.style = "flex:1; cursor:pointer; color:#38bdf8; font-weight:bold;";
+        nameBtn.onclick = () => initLoadRoute(idx);
+        
+        const delBtn = document.createElement('img');
+        delBtn.src = "close.png";
+        delBtn.className = "input-icon";
+        delBtn.style.height = "25px";
+        delBtn.onclick = () => {
+            favRoutes.splice(idx, 1);
+            localStorage.setItem('cwFavRoutes', JSON.stringify(favRoutes));
+            renderSavedRoutes();
+        };
+        
+        div.appendChild(nameBtn);
+        div.appendChild(delBtn);
+        list.appendChild(div);
+    });
+}
+
+function toggleKeepSaved() {
+    localStorage.setItem('cwKeepSavedOpen', document.getElementById('keepSavedOpen').checked);
+}
+
+function initLoadRoute(idx) {
+    let favRoutes = JSON.parse(localStorage.getItem('cwFavRoutes') || '[]');
+    routeToLoad = favRoutes[idx];
+    if(!routeToLoad) return;
+
+    const start = document.getElementById('startNode').value.trim();
+    const end = document.getElementById('endNode').value.trim();
+    const wps = document.querySelectorAll('.waypoint-input').length;
+    
+    const hasData = start || end || wps > 0;
+    const skipWarn = localStorage.getItem('cwSkipRouteWarn') === 'true';
+    
+    if (hasData && !skipWarn) {
+        document.getElementById('routeWarnModal').style.display = 'flex';
+    } else {
+        confirmLoadRoute();
+    }
+}
+
+function confirmLoadRoute() {
+    if(document.getElementById('skipWarnCheckbox').checked) {
+        localStorage.setItem('cwSkipRouteWarn', 'true');
+    }
+    document.getElementById('routeWarnModal').style.display = 'none';
+    if(!routeToLoad) return;
+    
+    document.getElementById('startNode').value = routeToLoad.start;
+    document.getElementById('endNode').value = routeToLoad.end;
+    document.getElementById('waypointsContainer').innerHTML = '';
+    
+    routeToLoad.wps.forEach(wp => {
+        addWaypoint();
+        const inputs = document.querySelectorAll('.waypoint-input');
+        inputs[inputs.length - 1].value = wp;
+    });
+    
+    calculateRoute();
+    routeToLoad = null;
+    
+    setTimeout(() => {
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+}
+
+function closeRouteWarn() {
+    document.getElementById('routeWarnModal').style.display = 'none';
+    routeToLoad = null;
+}
+
 // 8. Обработчики событий (Скролл, загрузка, сообщения)
 window.addEventListener('scroll', () => {
     const upBtn = document.getElementById('scrollUpBtn');
@@ -1717,6 +1882,12 @@ window.addEventListener('message', function(event) {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
+    updateFavLocsList();
+    renderSavedRoutes();
+    if(localStorage.getItem('cwKeepSavedOpen') === 'true') {
+        document.getElementById('keepSavedOpen').checked = true;
+        document.getElementById('savedContainer').style.display = 'flex';
+    }
     const savedMulti = localStorage.getItem("multiColsPref");
     const savedCols = localStorage.getItem("colsCount");
     if (savedCols) {
