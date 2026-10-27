@@ -55,7 +55,9 @@
             background-color: #324154;
         }
 #result.export-mode {
-            width: fit-content;
+            width: max-content !important;
+            max-width: none !important;
+            overflow: visible !important;
             margin: 0 auto;
             align-items: start;
         }
@@ -115,11 +117,13 @@
         .cols-input:focus {
             border-color: #38bdf8;
         }
-        #result.multi-columns {
+#result.multi-columns {
             display: grid;
             gap: 20px;
-            width: fit-content;
+            max-width: 100%; 
+            overflow-x: auto;
             margin: 0 auto;
+            padding-bottom: 15px; 
         }
         #result.multi-columns .step-container {
             margin-bottom: 45px !important; 
