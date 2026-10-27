@@ -225,12 +225,11 @@
     </div>
     
     <div id="savedContainer" class="drawer-container">
-        <p style="margin-top: 0; font-size: 0.9rem;">Сохраненные маршруты</p>
-        <label style="cursor: pointer; display: inline-flex; align-items: center; color: #cbd5e1; font-size: 0.9rem; margin-bottom: 15px;">
+        <div id="savedRoutesList" style="width: 100%; display: flex; flex-direction: column; gap: 10px;"></div>
+                <label style="cursor: pointer; display: inline-flex; align-items: center; color: #cbd5e1; font-size: 0.9rem; margin-bottom: 15px;">
             <input type="checkbox" id="keepSavedOpen" style="width: auto; transform: scale(1.2); margin-right: 8px;" onchange="toggleKeepSaved()">
             Оставлять вкладку всегда открытой
         </label>
-        <div id="savedRoutesList" style="width: 100%; display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
     
     <div style="text-align: center; margin-top: 1rem;">
