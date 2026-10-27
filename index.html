@@ -15,7 +15,6 @@
             background-color: #0f172a;
             color: #e2e8f0;
         }
-        h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 1.5rem !important; }
         p { text-align: center; color: #94a3b8; margin-top: 0; margin-bottom: 1.5rem; }
         .card {
             background-color: #1e293b;
@@ -31,18 +30,6 @@
         }
         input:focus { border-color: #38bdf8; }
         .action-buttons { display: flex; justify-content: center; margin: 1.5rem 0; }
-        .icon-btn {
-            background: #334155; color: #38bdf8; border: 1px solid #475569;
-            width: 50px; height: 50px; cursor: pointer;
-            font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
-        }
-        .icon-btn:hover { background: #475569; }
-        .main-btn {
-            width: 100%; padding: 1rem; background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
-            color: white; border: none; font-size: 1.1rem;
-            font-weight: bold; cursor: pointer;
-        }
-        .main-btn:hover { opacity: 0.9; }
         #result {
             margin-top: 2rem;
             display: flex;
@@ -87,9 +74,7 @@
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
         .copy-btn { margin-top: 20px; padding: 10px; background: #334155; color: #fff; border: none; cursor: pointer; width: 100%; }
         .error { color: #f87171; text-align: center; }
-        .drawer-toggle { margin-top: 1rem; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 0.8rem; width: 100%; cursor: pointer; transition: background 0.3s; font-size: 1rem; }
-        .drawer-toggle:hover { background: #334155; color: #fff; }
-        .drawer-container { display: none; background-color: #1e293b; padding: 1.5rem; margin-top: 1rem; border: 1px solid #334155; flex-direction: column; align-items: center; }
+        .drawer-container { display: none; background-color: #1e293b; padding: 1.5rem; margin-top: 1rem; border: none; flex-direction: column; align-items: center; }
         .drawer-grid { display: grid; grid-template-columns: repeat(10, 20px); grid-template-rows: repeat(6, 30px); gap: 4px; margin-bottom: 1rem; background: #0f172a; padding: 10px; }
         .drawer-cell { width: 20px; height: 30px; background-color: #324154; cursor: pointer; transition: background 0.2s; }
         .drawer-cell:hover { opacity: 0.8; }
@@ -136,11 +121,7 @@
                 display: flex; 
             }
         }
-        .tabs-row { display: flex; gap: 10px; margin-top: 1rem; }
-        .tabs-row .drawer-toggle { margin-top: 0; flex: 1; }
-        .inline-show-btn { background: #334155; color: #38bdf8; border: 1px solid #475569; padding: 0 10px; cursor: pointer; font-size: 0.8rem; transition: background 0.2s; white-space: nowrap; }
-        .inline-show-btn:hover { background: #475569; color: #fff; }
-        .input-group .input-wrapper { display: flex; gap: 8px; }
+        .input-group .input-wrapper { display: flex; gap: 8px; align-items: center; }
         .floating-arrows { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; }
         .scroll-btn { width: 40px; height: 40px; background: #1e293b; border: 1px solid #475569; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; opacity: 0.7; }
         .scroll-btn:hover { opacity: 1; background: #334155; transform: scale(1.1); }
@@ -151,58 +132,81 @@
         .highlight-target {
             border: 2px solid #4ade80 !important;
         }
+        .img-btn { cursor: pointer; transition: opacity 0.2s; }
+        .img-btn:hover { opacity: 0.8; }
+        .img-btn-main { cursor: pointer; transition: opacity 0.2s; max-width: 100%; display: block; margin: 0 auto; }
+        .img-btn-main:hover { opacity: 0.9; }
+        .tab-img { cursor: pointer; margin: 10px auto; display: block; max-width: 100%; transition: opacity 0.2s; }
+        .tab-img:hover { opacity: 0.8; }
+        .post-route-actions { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 20px; grid-column: 1 / -1; width: 100%; }
     </style>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
 <div class="card">
-    <h1>Steps on Stars: генератор маршрутов</h1>
+    <div style="text-align: center; margin-bottom: 0.5rem;">
+        <img src="sos.png" alt="Steps on Stars" style="max-width: 100%;">
+    </div>
     <p>Введите номера степей от 1 до 100.</p>
-   <div class="input-group">
+    
+    <div class="input-group">
         <label>Начальная степь:</label>
         <div class="input-wrapper">
             <input type="text" id="startNode" placeholder="1">
-            <button class="inline-show-btn" onclick="openViewerWithId('startNode')">Показать</button>
+            <img src="show.png" alt="Показать" class="img-btn" onclick="openViewerWithId('startNode')">
         </div>
-   </div>
+    </div>
+    
     <div id="waypointsContainer" style="margin: 10px 0; padding-left: 10px; border-left: 2px dashed #475569;"></div>
     <button class="copy-btn" style="margin-bottom: 15px; width: auto;" onclick="addWaypoint()">+ Пройти через...</button>
-    <div class="action-buttons"><button class="icon-btn" onclick="swapInputs()" title="Поменять местами">⇅</button></div>
+    
+    <div class="action-buttons">
+        <img src="switch.png" alt="Поменять местами" class="img-btn" onclick="swapInputs()">
+    </div>
+    
      <div class="input-group">
         <label>Конечная степь:</label>
         <div class="input-wrapper">
             <input type="text" id="endNode" placeholder="100">
-            <button class="inline-show-btn" onclick="openViewerWithId('endNode')">Показать</button>
+            <img src="show.png" alt="Показать" class="img-btn" onclick="openViewerWithId('endNode')">
         </div>
      </div>
-    <button class="main-btn" onclick="calculateRoute()">Построить маршрут</button>
-        <div class="two-cols-wrapper">
+     
+    <div style="text-align: center; margin: 1.5rem 0;">
+        <img src="bildst.png" alt="Построить маршрут" class="img-btn-main" onclick="calculateRoute()">
+    </div>
+    
+    <div class="two-cols-wrapper">
         <label style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
             <input type="checkbox" id="twoColsCheckbox" onchange="toggleTwoColumns()">
             Показывать маршрут в два ряда
         </label>
     </div>
+    
     <div id="result"></div>
-    <button id="saveImgBtn" class="copy-btn" style="display:none" onclick="saveAsImage()">Скачать маршрут как картинку</button>
-            <div class="tabs-row">
-        <button class="drawer-toggle" id="btnDraw" onclick="openTab('draw')">Нарисовать степь</button>
-        <button class="drawer-toggle" id="btnView" onclick="openTab('view')">Показать степь</button>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+        <img src="drawst.png" alt="Нарисовать степь" class="tab-img" onclick="openTab('draw')">
     </div>
-
+    
     <div id="drawerContainer" class="drawer-container">
         <p style="margin-top: 0; font-size: 0.9rem;">Нажимайте на ячейки, чтобы отметить переходы</p>
         <div id="drawerGrid" class="drawer-grid"></div>
         <div id="drawerResult" class="drawer-result">Отметьте переходы...</div>
-                <div id="autocompletePrompt" style="display:none; margin-top:10px; font-size:0.9rem; color:#cbd5e1; text-align:center;"></div>
+        <div id="autocompletePrompt" style="display:none; margin-top:10px; font-size:0.9rem; color:#cbd5e1; text-align:center;"></div>
         <div class="drawer-actions">
             <button class="drawer-btn" onclick="setDrawerTarget('start')">Сделать начальной</button>
             <button class="drawer-btn" onclick="setDrawerTarget('end')">Сделать конечной</button>
             <button class="drawer-btn" onclick="setDrawerTarget('waypoint')">Добавить в промежуточные</button>
         </div>
-            <button onclick="resetDrawer()" style="background: #324154; color: #f87171; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-top: 15px; font-size: 0.9rem; width: 100%; transition: background 0.2s;" onmouseover="this.style.background='#2E3B4E'" onmouseout="this.style.background='#324154'">Сбросить сетку</button>
+        <button onclick="resetDrawer()" style="background: #324154; color: #f87171; border: none; padding: 0.5rem 1rem; cursor: pointer; margin-top: 15px; font-size: 0.9rem; width: 100%; transition: background 0.2s;" onmouseover="this.style.background='#2E3B4E'" onmouseout="this.style.background='#324154'">Сбросить сетку</button>
     </div>
-        
+    
+    <div style="text-align: center; margin-top: 1rem;">
+        <img src="showst.png" alt="Показать степь" class="tab-img" onclick="openTab('view')">
+    </div>
+    
     <div id="viewerContainer" class="drawer-container">
         <p style="margin-top: 0; font-size: 0.9rem;">Введите номер степи, которую хотите увидеть:</p>
         <div style="display: flex; gap: 10px; margin-bottom: 1rem; width: 100%;">
@@ -212,6 +216,7 @@
         <div id="viewerResult" class="drawer-result"></div>
         <div id="viewerGrid" class="drawer-grid" style="display:none; pointer-events: none;"></div>
     </div>
+</div>
 
 </div>
     <div class="site-footer">
@@ -1200,17 +1205,17 @@ for (let locId in locationsDB) {
     adjacency[locId] = Object.values(locationsDB[locId].exits);
 }
 
-// 2. Вспомогательные функции пути
 function addWaypoint() {
     const container = document.getElementById("waypointsContainer");
     const div = document.createElement("div");
     div.style.marginBottom = "5px";
     div.style.display = "flex";
     div.style.gap = "5px";
+    div.style.alignItems = "center";
     div.innerHTML = `
         <input type="text" class="waypoint-input" placeholder="Номер степи...">
-        <button onclick="openViewerWithElement(this)" class="inline-show-btn">Показать</button>
-        <button onclick="this.parentElement.remove()" style="background:#ef4444; border:none; color:white; border-radius:4px; cursor:pointer; padding: 0 10px;">X</button>
+        <img src="show.png" alt="Показать" class="img-btn" onclick="openViewerWithElement(this)">
+        <img src="close.png" alt="Удалить" class="img-btn" onclick="this.parentElement.remove()">
     `;
     container.appendChild(div);
 }
@@ -1247,8 +1252,7 @@ function calculateRoute() {
     const resultDiv = document.getElementById("result");
     const saveBtn = document.getElementById("saveImgBtn");
     
-    resultDiv.innerHTML = "";
-    if(saveBtn) saveBtn.style.display = "none";
+ resultDiv.innerHTML = "";
 
     const wpInputs = document.querySelectorAll(".waypoint-input");
     let waypoints = [];
@@ -1345,20 +1349,33 @@ let finalPath = [];
         });
     });
 
-    if(saveBtn) saveBtn.style.display = "block";
-
-    const closeBtn = document.createElement("button");
-    closeBtn.className = "drawer-btn";
-    closeBtn.innerText = "Свернуть маршрут";
-    closeBtn.style.display = "block";
-    closeBtn.style.gridColumn = "1 / -1";
-    closeBtn.style.margin = "20px auto 0 auto";
-    closeBtn.onclick = () => {
+const actionRow = document.createElement("div");
+    actionRow.className = "post-route-actions";
+    
+    const favBtn = document.createElement("img");
+    favBtn.src = "favst.png";
+    favBtn.className = "img-btn";
+    favBtn.onclick = () => {};
+    
+    const clsBtn = document.createElement("img");
+    clsBtn.src = "closest.png";
+    clsBtn.className = "img-btn";
+    clsBtn.onclick = () => {
         resultDiv.innerHTML = ""; 
-        if (saveBtn) saveBtn.style.display = "none";
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-    resultDiv.appendChild(closeBtn);
+    
+    const dlBtn = document.createElement("img");
+    dlBtn.src = "dlst.png";
+    dlBtn.className = "img-btn";
+    dlBtn.onclick = saveAsImage;
+    
+    actionRow.appendChild(favBtn);
+    actionRow.appendChild(clsBtn);
+    actionRow.appendChild(dlBtn);
+    
+    resultDiv.appendChild(actionRow);
+    
     saveRouteMemory();
 }
 
@@ -1547,29 +1564,21 @@ function toggleTwoColumns() {
 function openTab(tab) {
     const drawCont = document.getElementById('drawerContainer');
     const viewCont = document.getElementById('viewerContainer');
-    const btnDraw = document.getElementById('btnDraw');
-    const btnView = document.getElementById('btnView');
 
     if (tab === 'draw') {
         if (drawCont.style.display === 'flex') {
             drawCont.style.display = 'none';
-            btnDraw.style.background = '#1e293b';
         } else {
             drawCont.style.display = 'flex';
             viewCont.style.display = 'none';
-            btnDraw.style.background = '#334155';
-            btnView.style.background = '#1e293b';
             if (document.getElementById('drawerGrid').children.length === 0) initDrawerGrid();
         }
     } else {
         if (viewCont.style.display === 'flex') {
             viewCont.style.display = 'none';
-            btnView.style.background = '#1e293b';
         } else {
             viewCont.style.display = 'flex';
             drawCont.style.display = 'none';
-            btnView.style.background = '#334155';
-            btnDraw.style.background = '#1e293b';
         }
     }
 }
