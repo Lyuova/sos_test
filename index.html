@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Steps on Stars</title>
     <link rel="icon" type="image/png" href="https://i.postimg.cc/Bv2h6BfN/Bez-nazvania617-20260219174018.png">
-   <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css'>
+ <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css' media="print" onload="this.media='all'">
+<noscript><link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css'></noscript>
     <style>
      body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -39,7 +40,7 @@
             background-color: #0f172a;
             padding: 20px;
         }
-        #result:empty { display: none; }
+       #result:empty { display: none !important; }
         .step-container {
             background: #1C273A; border: none;
             padding: 15px; display: flex; flex-direction: column; align-items: center;
@@ -87,13 +88,14 @@
         .site-footer a { color: #38bdf8; text-decoration: none; transition: color 0.2s; }
         .site-footer a:hover { color: #7dd3fc; text-decoration: underline; }
         .site-footer b { color: #94a3b8; }
-        .two-cols-wrapper {
-            margin-top: 15px;
-            margin-bottom: 5px;
-            text-align: center;
-            color: #cbd5e1;
-            font-size: 0.95rem;
-        }
+.two-cols-wrapper {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    text-align: center;
+    color: #cbd5e1;
+    font-size: 0.95rem;
+}
+body:has(#result:empty) .two-cols-wrapper { display: none; }
         .two-cols-wrapper input[type="checkbox"] {
             width: auto;
             padding: 0;
@@ -1614,8 +1616,24 @@ function openViewerWithElement(btnElement) {
     }
     viewCont.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
+    
+let html2canvasPromise = null;
+function loadHtml2canvas() {
+    if (window.html2canvas) return Promise.resolve();
+    if (!html2canvasPromise) {
+        html2canvasPromise = new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    }
+    return html2canvasPromise;
+}
 
-function saveAsImage() {
+async function saveAsImage() {
+    await loadHtml2canvas();
     const element = document.getElementById("result");
     element.classList.add("export-mode");
     html2canvas(element, { backgroundColor: "#0f172a", scale: 2 }).then(canvas => {
@@ -1666,7 +1684,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const data = JSON.parse(savedData);
             if (data.start) document.getElementById('startNode').value = data.start;
             if (data.end) document.getElementById('endNode').value = data.end;
-            if (data.wps && data.wps.length > 0) {
+                      if (data.wps && data.wps.length > 0) {
                 const container = document.getElementById("waypointsContainer");
                 container.innerHTML = ""; 
                 data.wps.forEach(val => {
@@ -1677,6 +1695,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }
+    if (data.start && data.end) setTimeout(calculateRoute, 300);
         } catch(e) {
             console.error("Ошибка чтения памяти маршрута", e);
         }
