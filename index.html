@@ -146,7 +146,7 @@
 
 <div class="card">
     <div style="text-align: center; margin-bottom: 0.5rem;">
-        <img src="sos.png" alt="Steps on Stars" style="max-width: 100%;">
+        <img src="sos.png" alt="Steps on Stars" class="logo-img">
     </div>
     <p>Введите номера степей от 1 до 100.</p>
     
@@ -154,7 +154,7 @@
         <label>Начальная степь:</label>
         <div class="input-wrapper">
             <input type="text" id="startNode" placeholder="1">
-            <img src="show.png" alt="Показать" class="img-btn" onclick="openViewerWithId('startNode')">
+            <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithId('startNode')">
         </div>
     </div>
     
@@ -162,19 +162,19 @@
     <button class="copy-btn" style="margin-bottom: 15px; width: auto;" onclick="addWaypoint()">+ Пройти через...</button>
     
     <div class="action-buttons">
-        <img src="switch.png" alt="Поменять местами" class="img-btn" onclick="swapInputs()">
+        <img src="switch.png" alt="Поменять местами" class="action-icon" onclick="swapInputs()">
     </div>
     
      <div class="input-group">
         <label>Конечная степь:</label>
         <div class="input-wrapper">
             <input type="text" id="endNode" placeholder="100">
-            <img src="show.png" alt="Показать" class="img-btn" onclick="openViewerWithId('endNode')">
+            <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithId('endNode')">
         </div>
      </div>
      
     <div style="text-align: center; margin: 1.5rem 0;">
-        <img src="bildst.png" alt="Построить маршрут" class="img-btn-main" onclick="calculateRoute()">
+        <img src="bildst.png" alt="Построить маршрут" class="main-btn-img" onclick="calculateRoute()">
     </div>
     
     <div class="two-cols-wrapper">
@@ -217,7 +217,7 @@
         <div id="viewerGrid" class="drawer-grid" style="display:none; pointer-events: none;"></div>
     </div>
 </div>
-
+    
 </div>
     <div class="site-footer">
     Код для сайта написан <b>Gemini</b> под чётким руководством игрока <a href="https://catwar.net/cat1033188" target="_blank"><b>Черничный Чизкейк</b></a> и с помощью её материалов из ленты.<br><br>
@@ -1214,8 +1214,8 @@ function addWaypoint() {
     div.style.alignItems = "center";
     div.innerHTML = `
         <input type="text" class="waypoint-input" placeholder="Номер степи...">
-        <img src="show.png" alt="Показать" class="img-btn" onclick="openViewerWithElement(this)">
-        <img src="close.png" alt="Удалить" class="img-btn" onclick="this.parentElement.remove()">
+        <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithElement(this)">
+        <img src="close.png" alt="Удалить" class="input-icon" onclick="this.parentElement.remove()">
     `;
     container.appendChild(div);
 }
@@ -1354,12 +1354,12 @@ const actionRow = document.createElement("div");
     
     const favBtn = document.createElement("img");
     favBtn.src = "favst.png";
-    favBtn.className = "img-btn";
+    favBtn.className = "action-icon";
     favBtn.onclick = () => {};
     
     const clsBtn = document.createElement("img");
     clsBtn.src = "closest.png";
-    clsBtn.className = "img-btn";
+    clsBtn.className = "action-icon";
     clsBtn.onclick = () => {
         resultDiv.innerHTML = ""; 
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1367,7 +1367,7 @@ const actionRow = document.createElement("div");
     
     const dlBtn = document.createElement("img");
     dlBtn.src = "dlst.png";
-    dlBtn.className = "img-btn";
+    dlBtn.className = "action-icon";
     dlBtn.onclick = saveAsImage;
     
     actionRow.appendChild(favBtn);
