@@ -1253,9 +1253,10 @@ function simpleBFS(start, end) {
 function calculateRoute() {
     const startLabel = document.getElementById("startNode").value.trim();
     const endLabel = document.getElementById("endNode").value.trim();
-    const resultDiv = document.getElementById("result");
-    const saveBtn = document.getElementById("saveImgBtn");
-    
+  const resultDiv = document.getElementById("result");
+
+resultDiv.style.display = ""; 
+resultDiv.innerHTML = "";
  resultDiv.innerHTML = "";
 
     const wpInputs = document.querySelectorAll(".waypoint-input");
@@ -1364,10 +1365,13 @@ const actionRow = document.createElement("div");
     const clsBtn = document.createElement("img");
     clsBtn.src = "closest.png";
     clsBtn.className = "action-icon";
-    clsBtn.onclick = () => {
+   clsBtn.onclick = () => {
         resultDiv.innerHTML = ""; 
+        resultDiv.style.display = "none"; 
+        localStorage.removeItem('cwFullRoute'); 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
     
     const dlBtn = document.createElement("img");
     dlBtn.src = "dlst.png";
@@ -1673,7 +1677,6 @@ window.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }
-            if (data.start && data.end) setTimeout(calculateRoute, 300);
         } catch(e) {
             console.error("Ошибка чтения памяти маршрута", e);
         }
