@@ -1367,13 +1367,12 @@ const actionRow = document.createElement("div");
     const clsBtn = document.createElement("img");
     clsBtn.src = "closest.png";
     clsBtn.className = "action-icon";
-   clsBtn.onclick = () => {
-        resultDiv.innerHTML = ""; 
-        resultDiv.style.display = "none"; 
-        localStorage.removeItem('cwFullRoute'); 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
+  clsBtn.onclick = () => {
+    resultDiv.innerHTML = ""; 
+    resultDiv.style.display = "none";
+    saveRouteMemory(false); // поля остаются в памяти, помечаем «свёрнуто»
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
     
     const dlBtn = document.createElement("img");
     dlBtn.src = "dlst.png";
@@ -1645,11 +1644,11 @@ async function saveAsImage() {
     });
 }
 
-function saveRouteMemory() {
+function saveRouteMemory(visible = true) {
     const start = document.getElementById('startNode').value;
     const end = document.getElementById('endNode').value;
     const wps = Array.from(document.querySelectorAll('.waypoint-input')).map(inp => inp.value);
-    localStorage.setItem('cwFullRoute', JSON.stringify({start, end, wps}));
+    localStorage.setItem('cwFullRoute', JSON.stringify({ start, end, wps, visible }));
 }
 
 // 8. Обработчики событий (Скролл, загрузка, сообщения)
@@ -1695,7 +1694,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }
-    if (data.start && data.end) setTimeout(calculateRoute, 300);
+   if (data.start && data.end && data.visible !== false) setTimeout(calculateRoute, 300);
         } catch(e) {
             console.error("Ошибка чтения памяти маршрута", e);
         }
