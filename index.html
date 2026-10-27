@@ -54,9 +54,7 @@
             width: 20px; height: 30px;
             background-color: #324154;
         }
-        #result.export-mode {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr;
+#result.export-mode {
             width: fit-content;
             margin: 0 auto;
             align-items: start;
@@ -89,13 +87,13 @@
         .site-footer a:hover { color: #7dd3fc; text-decoration: underline; }
         .site-footer b { color: #94a3b8; }
 .two-cols-wrapper {
-    margin-top: 15px;
-    margin-bottom: 5px;
-    text-align: center;
-    color: #cbd5e1;
-    font-size: 0.95rem;
-}
-body:has(#result:empty) .two-cols-wrapper { display: none; }
+            margin-top: 15px;
+            margin-bottom: 5px;
+            text-align: center;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+        body:has(#result:empty) .two-cols-wrapper { display: none; }
         .two-cols-wrapper input[type="checkbox"] {
             width: auto;
             padding: 0;
@@ -103,14 +101,27 @@ body:has(#result:empty) .two-cols-wrapper { display: none; }
             transform: scale(1.2);
             cursor: pointer;
         }
-        #result.two-columns {
+        .cols-input {
+            width: 40px;
+            padding: 2px 5px;
+            margin: 0 5px;
+            background-color: #1e293b;
+            color: #fff;
+            border: 1px solid #475569;
+            text-align: center;
+            font-size: 1rem;
+            outline: none;
+        }
+        .cols-input:focus {
+            border-color: #38bdf8;
+        }
+        #result.multi-columns {
             display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 20px;
             width: fit-content;
             margin: 0 auto;
         }
-        #result.two-columns .step-container {
+        #result.multi-columns .step-container {
             margin-bottom: 45px !important; 
             margin-left: 10px !important;
             margin-right: 10px !important;
@@ -119,8 +130,9 @@ body:has(#result:empty) .two-cols-wrapper { display: none; }
             .two-cols-wrapper {
                 display: none !important;
             }
-            #result.two-columns {
-                display: flex; 
+            #result.multi-columns {
+                display: flex !important; 
+                grid-template-columns: none !important;
             }
         }
         .input-group .input-wrapper { display: flex; gap: 8px; align-items: center; }
@@ -183,10 +195,12 @@ body:has(#result:empty) .two-cols-wrapper { display: none; }
         <img src="bildst.png" alt="Построить маршрут" class="main-btn-img" onclick="calculateRoute()">
     </div>
     
-    <div class="two-cols-wrapper">
+   <div class="two-cols-wrapper">
         <label style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
-            <input type="checkbox" id="twoColsCheckbox" onchange="toggleTwoColumns()">
-            Показывать маршрут в два ряда
+            <input type="checkbox" id="colsCheckbox" onchange="toggleColumns()">
+            Показывать маршрут в
+            <input type="number" id="colsInput" class="cols-input" value="2" min="1" max="10" onchange="toggleColumns()" onkeyup="toggleColumns()">
+            столбца(ов)
         </label>
     </div>
     
@@ -1558,15 +1572,19 @@ function setDrawerTarget(type) {
 }
 
 // 7. UI Функции (Вкладки, картинки, память)
-function toggleTwoColumns() {
-    const isChecked = document.getElementById("twoColsCheckbox").checked;
+function toggleColumns() {
+    const isChecked = document.getElementById("colsCheckbox").checked;
+    const colsCount = document.getElementById("colsInput").value || 2;
     const resultDiv = document.getElementById("result");
     if (isChecked) {
-        resultDiv.classList.add("two-columns");
-        localStorage.setItem("twoColumnsPref", "true");
+        resultDiv.classList.add("multi-columns");
+        resultDiv.style.gridTemplateColumns = `repeat(${colsCount}, 1fr)`;
+        localStorage.setItem("multiColsPref", "true");
+        localStorage.setItem("colsCount", colsCount);
     } else {
-        resultDiv.classList.remove("two-columns");
-        localStorage.setItem("twoColumnsPref", "false");
+        resultDiv.classList.remove("multi-columns");
+        resultDiv.style.gridTemplateColumns = "";
+        localStorage.setItem("multiColsPref", "false");
     }
 }
 
@@ -1671,10 +1689,14 @@ window.addEventListener('message', function(event) {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    const savedPref = localStorage.getItem("twoColumnsPref");
-    if (savedPref === "true") {
-        document.getElementById("twoColsCheckbox").checked = true;
-        document.getElementById("result").classList.add("two-columns");
+    const savedMulti = localStorage.getItem("multiColsPref");
+    const savedCols = localStorage.getItem("colsCount");
+    if (savedCols) {
+        document.getElementById("colsInput").value = savedCols;
+    }
+    if (savedMulti === "true") {
+        document.getElementById("colsCheckbox").checked = true;
+        toggleColumns();
     }
 
     const savedData = localStorage.getItem('cwFullRoute');
