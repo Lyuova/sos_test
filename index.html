@@ -146,8 +146,17 @@
             font-size: 1.5rem; 
             filter: invert(1) grayscale(1) brightness(2); 
         }
-        .highlight-target {
+      .highlight-target {
             border: 2px solid #4ade80 !important;
+        }
+        .highlight-target-repeat {
+            border: 2px solid rgba(74, 222, 128, 0.4) !important;
+        }
+        .goal-icon {
+            height: clamp(24px, 5vw, 30px);
+            width: auto;
+            object-fit: contain;
+            flex-shrink: 0;
         }
         
     .logo-img { max-width: 100%; height: clamp(140px, 28vw, 250px); object-fit: contain; }
@@ -1360,18 +1369,8 @@ let finalPath = [];
         return;
     }
 
-    renderPathVisuals(finalPath, resultDiv);
-
-    const targetsToHighlight = [endLabel, ...waypoints];
-    const renderedSteps = resultDiv.querySelectorAll('.step-container');
-    renderedSteps.forEach((container, index) => {
-        if (index === 0) return; 
-        targetsToHighlight.forEach(target => {
-            if (container.innerText.match(new RegExp(`Степь\\s+${target}\\b`, 'i'))) {
-                container.classList.add('highlight-target');
-            }
-        });
-    });
+  const targetsToHighlight = [endLabel, ...waypoints];
+    renderPathVisuals(finalPath, resultDiv, targetsToHighlight);
 
 const actionRow = document.createElement("div");
     actionRow.className = "post-route-actions";
@@ -1406,7 +1405,9 @@ const actionRow = document.createElement("div");
 }
 
 // 4. Отрисовка пути (на основе locationsDB)
-function renderPathVisuals(pathIds, container) {
+function renderPathVisuals(pathIds, container, targets = []) {
+    let visitedTargets = new Set(); // Память для уже посещенных целей
+
     pathIds.forEach((nodeId, index) => {
         const nextNodeId = pathIds[index + 1];
         const stepDiv = document.createElement("div");
@@ -1415,6 +1416,30 @@ function renderPathVisuals(pathIds, container) {
         const title = document.createElement("div");
         title.className = "step-title";
         title.innerText = `Степь ${nodeId}`;
+        
+        // Проверяем, является ли эта степь целью и не первая ли она в списке
+        if (index !== 0 && targets.includes(String(nodeId))) {
+            if (!visitedTargets.has(String(nodeId))) {
+                // Первое посещение цели
+                stepDiv.classList.add('highlight-target');
+                visitedTargets.add(String(nodeId));
+                
+                // Делаем заголовок контейнером для текста и картинки
+                title.style.display = "flex";
+                title.style.alignItems = "center";
+                title.style.justifyContent = "center";
+                title.style.gap = "8px";
+                
+                const icon = document.createElement("img");
+                icon.src = "goal.png";
+                icon.className = "goal-icon";
+                title.appendChild(icon);
+            } else {
+                // Повторное посещение (бледная обводка, без картинки)
+                stepDiv.classList.add('highlight-target-repeat');
+            }
+        }
+        
         stepDiv.appendChild(title);
         
         const gridDiv = document.createElement("div");
