@@ -209,18 +209,21 @@
     <div id="waypointsContainer" style="margin: 10px 0; padding-left: 10px; border-left: 2px dashed #475569;"></div>
     <button class="copy-btn" style="margin-bottom: 15px; width: auto;" onclick="addWaypoint()">+ Пройти через...</button>
     
-  <div class="action-buttons" style="gap: 20px;">
-        <img src="switch.png" alt="Поменять местами" class="action-icon" onclick="swapInputs()" title="Поменять местами">
-        <img src="closeit.png" alt="Сбросить маршрут" class="action-icon" onclick="resetAllRouteInputs()" title="Очистить маршрут">
+<div class="action-buttons">
+        <img src="switch.png" alt="Поменять местами" class="action-icon" onclick="swapInputs()">
     </div>
     
-     <div class="input-group">
+    <div class="input-group" style="margin-bottom: 0.5rem;">
         <label>Конечная степь:</label>
         <div class="input-wrapper">
             <input type="text" id="endNode" placeholder="100" list="favLocsList">
             <img src="favst.png" alt="В избранное" class="input-icon" onclick="toggleFavLoc('endNode')" title="Добавить/убрать из избранных">
             <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithId('endNode')">
         </div>
+     </div>
+     
+     <div style="text-align: center; margin-bottom: 1.5rem;">
+         <img src="closeit.png" alt="Сбросить маршрут" style="height: clamp(30px, 6vw, 45px); width: auto; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1" onclick="resetAllRouteInputs()" title="Очистить весь маршрут">
      </div>
      
     <div style="text-align: center; margin: 1.5rem 0;">
