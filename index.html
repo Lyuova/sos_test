@@ -229,11 +229,11 @@
     </div>
     <p>Введите номера степей от 1 до 100.</p>
     
-    <div class="input-group">
+<div class="input-group">
         <label>Начальная степь:</label>
         <div class="input-wrapper">
-            <input type="text" id="startNode" placeholder="1" list="favLocsList">
-            <img src="favst.png" alt="В избранное" class="input-icon" onclick="toggleFavLoc('startNode')" title="Добавить/убрать из избранных">
+            <input type="text" id="startNode" placeholder="1" list="favLocsList" oninput="checkFavIcon(this)">
+            <img src="favst.png" alt="В избранное" class="input-icon fav-icon-btn" onclick="toggleFavLoc(this)" title="Добавить в избранное">
             <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithId('startNode')">
         </div>
     </div>
@@ -245,16 +245,16 @@
         <img src="switch.png" alt="Поменять местами" class="action-icon" onclick="swapInputs()">
     </div>
     
-    <div class="input-group" style="margin-bottom: 0.5rem;">
+  <div class="input-group" style="margin-bottom: 0.5rem;">
         <label>Конечная степь:</label>
         <div class="input-wrapper">
-            <input type="text" id="endNode" placeholder="100" list="favLocsList">
-            <img src="favst.png" alt="В избранное" class="input-icon" onclick="toggleFavLoc('endNode')" title="Добавить/убрать из избранных">
+            <input type="text" id="endNode" placeholder="100" list="favLocsList" oninput="checkFavIcon(this)">
+            <img src="favst.png" alt="В избранное" class="input-icon fav-icon-btn" onclick="toggleFavLoc(this)" title="Добавить в избранное">
             <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithId('endNode')">
         </div>
      </div>
      
-     <div style="text-align: center; margin-bottom: 1.5rem;">
+  <div style="text-align: center; margin-bottom: 1.5rem;">
          <img src="closeit.png" alt="Сбросить маршрут" style="height: clamp(30px, 6vw, 45px); width: auto; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1" onclick="resetAllRouteInputs()" title="Очистить весь маршрут">
      </div>
      
@@ -1334,8 +1334,8 @@ function addWaypoint() {
     div.style.gap = "5px";
     div.style.alignItems = "center";
     div.innerHTML = `
-        <input type="text" class="waypoint-input" placeholder="Номер степи..." list="favLocsList">
-        <img src="favst.png" alt="В избранное" class="input-icon" onclick="toggleFavLoc(this)" title="Добавить/убрать из избранных">
+        <input type="text" class="waypoint-input" placeholder="Номер степи..." list="favLocsList" oninput="checkFavIcon(this)">
+        <img src="favst.png" alt="В избранное" class="input-icon fav-icon-btn" onclick="toggleFavLoc(this)" title="Добавить в избранное">
         <img src="show.png" alt="Показать" class="input-icon" onclick="openViewerWithElement(this)">
         <img src="close.png" alt="Удалить" class="input-icon" onclick="this.parentElement.remove()">
     `;
@@ -1834,26 +1834,20 @@ function toggleFavLoc(target) {
         if (!inputEl) return;
         
         let val = inputEl.value.trim();
-        if (!val) {
-            alert("Сначала введите номер степи, чтобы добавить или убрать её!");
-            return;
-        }
+        if (!val) return;
         
         let favLocs = JSON.parse(localStorage.getItem('cwFavLocs') || '[]');
         if (!Array.isArray(favLocs)) favLocs = [];
 
         if (favLocs.includes(val)) {
-            // Удаляем, если уже есть
-            favLocs = favLocs.filter(l => l !== val);
-            alert(`Степь ${val} УБРАНА из избранного.`);
+            favLocs = favLocs.filter(l => l !== val); // Удаляем
         } else {
-            // Добавляем, если нет
-            favLocs.push(val);
-            alert(`Степь ${val} ДОБАВЛЕНА в избранное!`);
+            favLocs.push(val); // Добавляем
         }
         
         localStorage.setItem('cwFavLocs', JSON.stringify(favLocs));
         updateFavLocsList();
+        updateAllFavIcons(); // Мгновенно обновляем картинки!
         
         let origBg = inputEl.style.backgroundColor;
         inputEl.style.backgroundColor = '#334155';
@@ -1863,6 +1857,29 @@ function toggleFavLoc(target) {
     }
 }
 
+function checkFavIcon(inputEl) {
+    if (!inputEl) return;
+    const val = inputEl.value.trim();
+    const favLocs = JSON.parse(localStorage.getItem('cwFavLocs') || '[]');
+    const favIcon = inputEl.parentElement.querySelector('.fav-icon-btn');
+    
+    if (favIcon) {
+        if (val && favLocs.includes(val)) {
+            favIcon.src = 'favdel.png';
+            favIcon.title = "Убрать из избранного";
+        } else {
+            favIcon.src = 'favst.png';
+            favIcon.title = "Добавить в избранное";
+        }
+    }
+}
+
+function updateAllFavIcons() {
+    document.querySelectorAll('input[list="favLocsList"]').forEach(input => {
+        checkFavIcon(input);
+    });
+}
+    
 function saveCurrentRoute() {
     const start = document.getElementById('startNode').value.trim();
     const end = document.getElementById('endNode').value.trim();
@@ -2040,6 +2057,7 @@ window.addEventListener('message', function(event) {
 window.addEventListener('DOMContentLoaded', () => {
     updateFavLocsList();
     renderSavedRoutes();
+    updateAllFavIcons();
     if(localStorage.getItem('cwKeepSavedOpen') === 'true') {
         document.getElementById('keepSavedOpen').checked = true;
         document.getElementById('savedContainer').style.display = 'flex';
