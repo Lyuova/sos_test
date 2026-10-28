@@ -1892,10 +1892,10 @@ async function saveAsImage() {
 function saveRouteMemory(visible = true) {
     const start = document.getElementById('startNode').value;
     const end = document.getElementById('endNode').value;
+    const exactSteps = document.getElementById('exactSteps').value; // Запоминаем шаги
     const wps = Array.from(document.querySelectorAll('.waypoint-input')).map(inp => inp.value);
-    localStorage.setItem('cwFullRoute', JSON.stringify({ start, end, wps, visible }));
+    localStorage.setItem('cwFullRoute', JSON.stringify({ start, end, wps, exactSteps, visible }));
 }
-
     // === НОВЫЕ ФУНКЦИИ ДЛЯ ИЗБРАННОГО ===
 function updateFavLocsList() {
     let favLocs = JSON.parse(localStorage.getItem('cwFavLocs') || '[]');
@@ -1963,16 +1963,20 @@ function updateAllFavIcons() {
 function saveCurrentRoute() {
     const start = document.getElementById('startNode').value.trim();
     const end = document.getElementById('endNode').value.trim();
+    const exactSteps = document.getElementById('exactSteps').value.trim(); // Захватываем шаги
     const wps = Array.from(document.querySelectorAll('.waypoint-input')).map(i => i.value.trim()).filter(v => v);
     
     if(!start || !end) return alert("Для сохранения нужен построенный маршрут с началом и концом!");
     
+    // Формируем красивое стандартное имя (добавляем шаги, если они указаны)
     let defName = [start, ...wps, end].join('-');
+    if (exactSteps) defName += ` (${exactSteps} пер.)`;
+    
     let name = prompt("Введите имя для этого маршрута:", defName);
     if(!name) return; 
     
     let favRoutes = JSON.parse(localStorage.getItem('cwFavRoutes') || '[]');
-    favRoutes.push({ name, start, end, wps });
+    favRoutes.push({ name, start, end, wps, exactSteps }); // Сохраняем шаги в базу
     localStorage.setItem('cwFavRoutes', JSON.stringify(favRoutes));
     renderSavedRoutes();
 }
@@ -1989,18 +1993,30 @@ function renderSavedRoutes() {
     
     favRoutes.forEach((r, idx) => {
         const div = document.createElement('div');
-        div.style = "display:flex; justify-content:space-between; align-items:center; background:#1C273A; padding:10px; border:1px solid #334155;";
+        div.style = "display:flex; justify-content:space-between; align-items:center; background:#1C273A; padding:10px; border:1px solid #334155; gap: 10px;";
         
         const nameBtn = document.createElement('div');
         nameBtn.innerText = r.name;
         nameBtn.style = "flex:1; cursor:pointer; color:#38bdf8; font-weight:bold;";
         nameBtn.onclick = () => initLoadRoute(idx);
         
+        // Блок для кнопок управления маршрутом (чтобы они стояли рядом справа)
+        const actionsDiv = document.createElement('div');
+        actionsDiv.style = "display:flex; gap:12px; align-items:center;";
+        
+        const shareBtn = document.createElement('img');
+        shareBtn.src = "share.png";
+        shareBtn.className = "input-icon";
+        shareBtn.style.height = "25px";
+        shareBtn.title = "Экспортировать этот маршрут";
+        shareBtn.onclick = () => exportSingleRoute(idx);
+        
         const delBtn = document.createElement('img');
         delBtn.src = "close.png";
         delBtn.className = "input-icon";
         delBtn.style.height = "25px";
-       delBtn.onclick = () => {
+        delBtn.title = "Удалить маршрут";
+        delBtn.onclick = () => {
             if (confirm(`Вы уверены, что хотите удалить маршрут "${r.name}"?`)) {
                 favRoutes.splice(idx, 1);
                 localStorage.setItem('cwFavRoutes', JSON.stringify(favRoutes));
@@ -2008,10 +2024,28 @@ function renderSavedRoutes() {
             }
         };
         
+        actionsDiv.appendChild(shareBtn);
+        actionsDiv.appendChild(delBtn);
+        
         div.appendChild(nameBtn);
-        div.appendChild(delBtn);
+        div.appendChild(actionsDiv);
         list.appendChild(div);
     });
+}
+
+    function exportSingleRoute(idx) {
+    let favRoutes = JSON.parse(localStorage.getItem('cwFavRoutes') || '[]');
+    let route = favRoutes[idx];
+    if (!route) return;
+    
+    // Сохраняем как массив из одного элемента, чтобы наш импорт легко его прочитал
+    let blob = new Blob([JSON.stringify([route], null, 2)], {type: "application/json"});
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = `route_${route.name}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 function toggleKeepSaved() {
@@ -2036,7 +2070,6 @@ function initLoadRoute(idx) {
         confirmLoadRoute();
     }
 }
-
 function confirmLoadRoute() {
     if(document.getElementById('skipWarnCheckbox').checked) {
         localStorage.setItem('cwSkipRouteWarn', 'true');
@@ -2046,6 +2079,7 @@ function confirmLoadRoute() {
     
     document.getElementById('startNode').value = routeToLoad.start;
     document.getElementById('endNode').value = routeToLoad.end;
+    document.getElementById('exactSteps').value = routeToLoad.exactSteps || ''; 
     document.getElementById('waypointsContainer').innerHTML = '';
     
     routeToLoad.wps.forEach(wp => {
@@ -2067,16 +2101,19 @@ function closeRouteWarn() {
     routeToLoad = null;
 }
 
-    function resetAllRouteInputs() {
+function resetAllRouteInputs() {
     if (confirm("Вы уверены, что хотите полностью очистить весь маршрут?")) {
         document.getElementById('startNode').value = '';
         document.getElementById('endNode').value = '';
+        document.getElementById('exactSteps').value = ''; // Сбрасываем точное количество переходов
         document.getElementById('waypointsContainer').innerHTML = '';
         const resultDiv = document.getElementById("result");
         resultDiv.innerHTML = ""; 
         resultDiv.style.display = "none";
         localStorage.removeItem('cwFullRoute');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        updateAllFavIcons(); // Заодно обновляем иконки избранного до обычных
     }
 }
 
@@ -2100,17 +2137,27 @@ function importRoutes(event) {
             let imported = JSON.parse(e.target.result);
             if(Array.isArray(imported)) {
                 let existing = JSON.parse(localStorage.getItem('cwFavRoutes') || '[]');
-                let merged = [...existing, ...imported];
-                localStorage.setItem('cwFavRoutes', JSON.stringify(merged));
-                renderSavedRoutes();
-                alert("Маршруты успешно импортированы!");
+                
+                // Проверяем, чтобы не импортировать дубликаты (по имени)
+                let existingNames = existing.map(r => r.name);
+                let newRoutes = imported.filter(r => !existingNames.includes(r.name));
+                
+                if (newRoutes.length === 0) {
+                    alert("Все маршруты из этого файла уже существуют в вашем списке!");
+                } else {
+                    // Добавляем новые маршруты к существующим
+                    let merged = [...existing, ...newRoutes];
+                    localStorage.setItem('cwFavRoutes', JSON.stringify(merged));
+                    renderSavedRoutes();
+                    alert(`Успешно добавлено новых маршрутов: ${newRoutes.length}`);
+                }
             } else {
                 alert("Неверный формат файла.");
             }
         } catch(err) {
             alert("Ошибка чтения файла.");
         }
-        event.target.value = ""; 
+        event.target.value = ""; // Сбрасываем поле файла, чтобы можно было импортировать тот же файл еще раз, если нужно
     };
     reader.readAsText(file);
 }
@@ -2158,6 +2205,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const data = JSON.parse(savedData);
             if (data.start) document.getElementById('startNode').value = data.start;
             if (data.end) document.getElementById('endNode').value = data.end;
+            if (data.exactSteps) document.getElementById('exactSteps').value = data.exactSteps; 
                       if (data.wps && data.wps.length > 0) {
                 const container = document.getElementById("waypointsContainer");
                 container.innerHTML = ""; 
