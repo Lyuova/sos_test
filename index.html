@@ -8,30 +8,47 @@
  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css' media="print" onload="this.media='all'">
 <noscript><link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css'></noscript>
     <style>
-    body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+@font-face {
+            font-family: 'Stampatello';
+            src: url('StampatelloFaceto.otf') format('opentype');
+        }
+        body {
+            font-family: 'Stampatello', 'Segoe UI', Tahoma, sans-serif;
             width: fit-content;
             min-width: min(100%, 800px);
             margin: 2rem auto;
             padding: 0 1rem;
             background-color: #0f172a;
-            color: #e2e8f0;
+            color: #ffffff; /* Сделали текст белее */
+            font-size: 1.15rem; /* Сделали базовый текст крупнее */
         }
-        p { text-align: center; color: #94a3b8; margin-top: 0; margin-bottom: 1.5rem; }
+        p { text-align: center; color: #f1f5f9; margin-top: 0; margin-bottom: 1.5rem; font-size: 1.15rem; }
         .card {
             background-color: #1e293b;
             padding: 2rem;
             border: none;
         }
-        .input-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.4rem; font-size: 0.9rem; color: #cbd5e1; }
+        .input-group { margin-bottom: 1rem; text-align: center; }
+        label { display: block; margin-bottom: 0.4rem; font-size: 1.1rem; color: #f8fafc; }
+        
+        .input-wrapper { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+            justify-content: center; /* Центрируем поля ввода */
+        }
         input {
-            width: 100%; padding: 0.8rem; box-sizing: border-box;
+            width: 100%; 
+            max-width: 200px; /* Фиксируем ширину, чтобы не растягивались */
+            padding: 0.6rem; 
+            box-sizing: border-box;
             background-color: #0f172a; border: none;
-            color: #fff; font-size: 1rem; outline: none;
+            color: #ffffff; font-size: 1.1rem; outline: none;
+            font-family: 'Stampatello', 'Segoe UI', sans-serif;
         }
         input:focus { border-color: #38bdf8; }
         .action-buttons { display: flex; justify-content: center; margin: 1.5rem 0; }
+        
         #result {
             margin-top: 2rem;
             display: flex;
@@ -41,30 +58,41 @@
             background-color: #0f172a;
             padding: 20px;
         }
-       #result:empty { display: none !important; }
-       .step-container {
+        #result:empty { display: none !important; }
+        .step-container {
             background: #1C273A; border: none;
             padding: 15px; display: flex; flex-direction: column; align-items: center;
             position: relative;
         }
-       .step-header {
+        
+        /* Идеальное центрирование заголовка и иконок справа */
+        .step-header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 10px;
+            min-height: 36px;
+        }
+        .step-title { 
+            grid-column: 2; /* Строго по центру */
+            color: #38bdf8; font-weight: bold; font-size: 1.3rem; margin: 0; text-align: center; 
+        }
+        .step-icons {
+            grid-column: 3; /* Строго справа от заголовка */
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            width: 100%;
+            gap: 8px;
+            padding-left: 10px;
         }
-        .step-title { color: #38bdf8; font-weight: bold; font-size: 1.1rem; margin: 0; }
+        
         .steppe-grid {
             display: grid; grid-template-columns: repeat(10, 20px);
             grid-template-rows: repeat(6, 30px); gap: 4px;
         }
-        .cell {
-            width: 20px; height: 30px;
-            background-color: #324154;
-        }
-#result.export-mode {
+        .cell { width: 20px; height: 30px; background-color: #324154; }
+        
+        #result.export-mode {
             width: max-content !important;
             max-width: none !important;
             overflow: visible !important;
@@ -76,14 +104,15 @@
             margin-left: 10px !important;
             margin-right: 10px !important;
         }
-        .arrow-down { display: none; color: #94a3b8; font-size: 1.5rem; margin: 5px 0; }
+        
+        .arrow-down { display: none; }
         .cell.exit { background-color: #0F172A; border: none; }
-        .cell.active-path {
-            background-color: #4ACA86 !important;
-            opacity: 1; border: none;
+        .cell.active-path { background-color: #4ACA86 !important; opacity: 1; border: none; }
+        
+        .copy-btn { 
+            margin-top: 20px; padding: 10px; background: #334155; color: #fff; 
+            border: none; cursor: pointer; width: 100%; font-family: 'Stampatello', sans-serif; font-size: 1.1rem;
         }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        .copy-btn { margin-top: 20px; padding: 10px; background: #334155; color: #fff; border: none; cursor: pointer; width: 100%; }
         .error { color: #f87171; text-align: center; }
         .drawer-container { display: none; background-color: #1e293b; padding: 1.5rem; margin-top: 1rem; border: none; flex-direction: column; align-items: center; }
         .drawer-grid { display: grid; grid-template-columns: repeat(10, 20px); grid-template-rows: repeat(6, 30px); gap: 4px; margin-bottom: 1rem; background: #0f172a; padding: 10px; }
@@ -1468,7 +1497,6 @@ const actionRow = document.createElement("div");
 // 4. Отрисовка пути (на основе locationsDB)
 function renderPathVisuals(pathIds, container, targets = []) {
     let visitedTargets = new Set();
-
     let currentGeo = localStorage.getItem('cwGeoBookmark');
     let currentPins = JSON.parse(localStorage.getItem('cwPinBookmarks') || '[]');
 
@@ -1480,28 +1508,30 @@ function renderPathVisuals(pathIds, container, targets = []) {
         const headerDiv = document.createElement("div");
         headerDiv.className = "step-header";
         
-        // 1. Название степи
         const title = document.createElement("div");
         title.className = "step-title";
         title.innerText = `Степь ${nodeId}`;
         headerDiv.appendChild(title);
         
-        // 2. Иконка Цели (если есть) и обводка
+        // Создаем блок для иконок (справа)
+        const iconsDiv = document.createElement("div");
+        iconsDiv.className = "step-icons";
+        
+        // Иконка Цели
         if (index !== 0 && targets.includes(String(nodeId))) {
             if (!visitedTargets.has(String(nodeId))) {
                 stepDiv.classList.add('highlight-target');
                 visitedTargets.add(String(nodeId));
-                
                 const goalIcon = document.createElement("img");
                 goalIcon.src = "goal.png";
                 goalIcon.className = "goal-icon";
-                headerDiv.appendChild(goalIcon);
+                iconsDiv.appendChild(goalIcon);
             } else {
                 stepDiv.classList.add('highlight-target-repeat');
             }
         }
         
-        // 3. Закладка Гео
+        // Иконка Гео
         const geoIcon = document.createElement("img");
         geoIcon.src = "geo.png";
         geoIcon.className = "bkm-icon" + (currentGeo === String(nodeId) ? " active" : "");
@@ -1515,9 +1545,9 @@ function renderPathVisuals(pathIds, container, targets = []) {
                 geoIcon.classList.add('active');
             }
         };
-        headerDiv.appendChild(geoIcon);
+        iconsDiv.appendChild(geoIcon);
 
-        // 4. Закладка Пин
+        // Иконка Пин
         const pinIcon = document.createElement("img");
         pinIcon.src = "pin.png";
         pinIcon.className = "bkm-icon" + (currentPins.includes(String(nodeId)) ? " active" : "");
@@ -1532,8 +1562,9 @@ function renderPathVisuals(pathIds, container, targets = []) {
             }
             localStorage.setItem('cwPinBookmarks', JSON.stringify(pins));
         };
-        headerDiv.appendChild(pinIcon);
+        iconsDiv.appendChild(pinIcon);
 
+        headerDiv.appendChild(iconsDiv);
         stepDiv.appendChild(headerDiv);
         
         const gridDiv = document.createElement("div");
@@ -1798,19 +1829,39 @@ function updateFavLocsList() {
 }
 
 function toggleFavLoc(target) {
-    let inputEl = typeof target === 'string' ? document.getElementById(target) : target.parentElement.querySelector('input');
-    let val = inputEl.value.trim();
-    if (!val) return;
-    
-    let favLocs = JSON.parse(localStorage.getItem('cwFavLocs') || '[]');
-    localStorage.setItem('cwFavLocs', JSON.stringify(favLocs));
-    updateFavLocsList();
-    
-    let origBg = inputEl.style.backgroundColor;
-    inputEl.style.backgroundColor = '#334155';
-    setTimeout(() => inputEl.style.backgroundColor = origBg, 200);
+    try {
+        let inputEl = typeof target === 'string' ? document.getElementById(target) : target.parentElement.querySelector('input');
+        if (!inputEl) return;
+        
+        let val = inputEl.value.trim();
+        if (!val) {
+            alert("Сначала введите номер степи, чтобы добавить или убрать её!");
+            return;
+        }
+        
+        let favLocs = JSON.parse(localStorage.getItem('cwFavLocs') || '[]');
+        if (!Array.isArray(favLocs)) favLocs = [];
+
+        if (favLocs.includes(val)) {
+            // Удаляем, если уже есть
+            favLocs = favLocs.filter(l => l !== val);
+            alert(`Степь ${val} УБРАНА из избранного.`);
+        } else {
+            // Добавляем, если нет
+            favLocs.push(val);
+            alert(`Степь ${val} ДОБАВЛЕНА в избранное!`);
+        }
+        
+        localStorage.setItem('cwFavLocs', JSON.stringify(favLocs));
+        updateFavLocsList();
+        
+        let origBg = inputEl.style.backgroundColor;
+        inputEl.style.backgroundColor = '#334155';
+        setTimeout(() => inputEl.style.backgroundColor = origBg, 200);
+    } catch (e) {
+        console.error("Ошибка избранного:", e);
+    }
 }
-let routeToLoad = null;
 
 function saveCurrentRoute() {
     const start = document.getElementById('startNode').value.trim();
