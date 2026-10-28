@@ -250,7 +250,14 @@
     <div id="waypointsContainer" style="margin: 10px 0; padding-left: 10px; border-left: 2px dashed #475569;"></div>
     <button class="copy-btn" style="margin-bottom: 15px; width: auto;" onclick="addWaypoint()">+ Пройти через...</button>
     
-<div class="action-buttons">
+    <div class="input-group" style="margin-bottom: 1rem;">
+        <label>Количество переходов (опц):</label>
+        <div class="input-wrapper">
+            <input type="number" id="exactSteps" placeholder="Например, 5" min="1" max="100" style="text-align: center;">
+        </div>
+    </div>
+    
+    <div class="action-buttons">
         <img src="switch.png" alt="Поменять местами" class="action-icon" onclick="swapInputs()">
     </div>
     
@@ -1375,16 +1382,70 @@ function simpleBFS(start, end) {
     return null;
 }
 
+    // Алгоритм поиска пути ровно в N шагов (через динамическое программирование)
+function findExactPathDP(start, end, waypoints, targetLen) {
+    let wpToIndex = {};
+    let wpCount = 0;
+    for (let w of waypoints) {
+        if (wpToIndex[w] === undefined && w !== start && w !== end) {
+            wpToIndex[w] = wpCount++;
+        }
+    }
+    
+    if (wpCount > 10) {
+        alert("Слишком много уникальных промежуточных степей для точного расчета. Укажите не более 10.");
+        return null; 
+    }
+    
+    let targetMask = (1 << wpCount) - 1;
+    let dp = Array.from({length: targetLen + 1}, () => ({}));
+    
+    dp[0][start] = { 0: { prev: null, prevMask: 0 } };
+    
+    for (let step = 0; step < targetLen; step++) {
+        for (let u in dp[step]) {
+            let masks = dp[step][u];
+            let neighbors = adjacency[u] || [];
+            
+            for (let maskStr in masks) {
+                let mask = Number(maskStr);
+                for (let i = 0; i < neighbors.length; i++) {
+                    let v = neighbors[i];
+                    let nextMask = mask;
+                    if (wpToIndex[v] !== undefined) nextMask |= (1 << wpToIndex[v]);
+                    
+                    if (!dp[step + 1][v]) dp[step + 1][v] = {};
+                    dp[step + 1][v][nextMask] = { prev: u, prevMask: mask };
+                }
+            }
+        }
+    }
+    
+    if (dp[targetLen][end] && dp[targetLen][end][targetMask]) {
+        let path = [];
+        let curr = end;
+        let currMask = targetMask;
+        for (let step = targetLen; step >= 0; step--) {
+            path.unshift(curr);
+            if (step > 0) {
+                let info = dp[step][curr][currMask];
+                curr = info.prev;
+                currMask = info.prevMask;
+            }
+        }
+        return path;
+    }
+    return null;
+}
 
-// 3. Главный расчет (Без labelToId)
+// 3. Главный расчет
 function calculateRoute() {
     const startLabel = document.getElementById("startNode").value.trim();
     const endLabel = document.getElementById("endNode").value.trim();
-  const resultDiv = document.getElementById("result");
+    const resultDiv = document.getElementById("result");
 
-resultDiv.style.display = ""; 
-resultDiv.innerHTML = "";
- resultDiv.innerHTML = "";
+    resultDiv.style.display = ""; 
+    resultDiv.innerHTML = "";
 
     const wpInputs = document.querySelectorAll(".waypoint-input");
     let waypoints = [];
@@ -1403,64 +1464,75 @@ resultDiv.innerHTML = "";
         }
     }
 
-let finalPath = [];
-    if (waypoints.length === 0) {
-        finalPath = simpleBFS(startLabel, endLabel);
-    } else {
-        // Оптимизированный "Жадный алгоритм"
-        let currentTotalPath = [];
-        let currentPos = startLabel;
-        let remainingWps = [...waypoints];
+    const exactStepsInput = document.getElementById("exactSteps").value.trim();
+    const exactSteps = parseInt(exactStepsInput);
 
-        // Пока есть непройденные точки, ищем ближайшую
-        while (remainingWps.length > 0) {
-            let closestWp = null;
-            let shortestSegment = null;
-            let minLen = Infinity;
-
-            // Ищем, какая из оставшихся точек ближе всего к текущей позиции
-            for (let i = 0; i < remainingWps.length; i++) {
-                let wp = remainingWps[i];
-                let segment = simpleBFS(currentPos, wp);
-                if (segment && segment.length < minLen) {
-                    minLen = segment.length;
-                    closestWp = wp;
-                    shortestSegment = segment;
-                }
-            }
-
-            // Если не смогли проложить путь ни к одной точке
-            if (!closestWp) {
-                resultDiv.innerHTML = `<div class="error">Маршрут невозможен. Одна из промежуточных степей недостижима.</div>`;
-                return;
-            }
-
-            // Добавляем путь до ближайшей точки в общий маршрут (без дублирования стыка)
-            if (currentTotalPath.length > 0) {
-                currentTotalPath.push(...shortestSegment.slice(1));
-            } else {
-                currentTotalPath.push(...shortestSegment);
-            }
-            
-            // Перемещаемся в эту точку и удаляем её из списка не посещенных
-            currentPos = closestWp;
-            remainingWps = remainingWps.filter(w => w !== closestWp);
-        }
-
-        // Финальный бросок: от последней промежуточной точки до финиша
-        let finalSegment = simpleBFS(currentPos, endLabel);
-        if (!finalSegment) {
-            resultDiv.innerHTML = `<div class="error">Конечная степь недостижима.</div>`;
+    let finalPath = [];
+    
+    // Если указано точное количество переходов
+    if (exactStepsInput && !isNaN(exactSteps) && exactSteps > 0) {
+        if (exactSteps > 100) {
+            resultDiv.innerHTML = `<div class="error">Ошибка: Слишком большое число переходов (максимум 100).</div>`;
             return;
         }
-        
-        if (currentTotalPath.length > 0) {
-            currentTotalPath.push(...finalSegment.slice(1));
-        } else {
-            currentTotalPath.push(...finalSegment);
+        finalPath = findExactPathDP(startLabel, endLabel, waypoints, exactSteps);
+        if (!finalPath) {
+            resultDiv.innerHTML = `<div class="error">Невозможно построить маршрут ровно в ${exactSteps} переходов через эти точки.</div>`;
+            return;
         }
-        
-        finalPath = currentTotalPath;
+    } else {
+        // Обычный расчет (короткий маршрут)
+        if (waypoints.length === 0) {
+            finalPath = simpleBFS(startLabel, endLabel);
+        } else {
+            let currentTotalPath = [];
+            let currentPos = startLabel;
+            let remainingWps = [...waypoints];
+
+            while (remainingWps.length > 0) {
+                let closestWp = null;
+                let shortestSegment = null;
+                let minLen = Infinity;
+
+                for (let i = 0; i < remainingWps.length; i++) {
+                    let wp = remainingWps[i];
+                    let segment = simpleBFS(currentPos, wp);
+                    if (segment && segment.length < minLen) {
+                        minLen = segment.length;
+                        closestWp = wp;
+                        shortestSegment = segment;
+                    }
+                }
+
+                if (!closestWp) {
+                    resultDiv.innerHTML = `<div class="error">Маршрут невозможен. Промежуточная степь недостижима.</div>`;
+                    return;
+                }
+
+                if (currentTotalPath.length > 0) {
+                    currentTotalPath.push(...shortestSegment.slice(1));
+                } else {
+                    currentTotalPath.push(...shortestSegment);
+                }
+                
+                currentPos = closestWp;
+                remainingWps = remainingWps.filter(w => w !== closestWp);
+            }
+
+            let finalSegment = simpleBFS(currentPos, endLabel);
+            if (!finalSegment) {
+                resultDiv.innerHTML = `<div class="error">Конечная степь недостижима.</div>`;
+                return;
+            }
+            
+            if (currentTotalPath.length > 0) {
+                currentTotalPath.push(...finalSegment.slice(1));
+            } else {
+                currentTotalPath.push(...finalSegment);
+            }
+            
+            finalPath = currentTotalPath;
+        }
     }
 
     if (!finalPath || finalPath.length === 0) {
@@ -1468,26 +1540,16 @@ let finalPath = [];
         return;
     }
 
-  const targetsToHighlight = [endLabel, ...waypoints];
+    const targetsToHighlight = [endLabel, ...waypoints];
     renderPathVisuals(finalPath, resultDiv, targetsToHighlight);
 
-const actionRow = document.createElement("div");
+    const actionRow = document.createElement("div");
     actionRow.className = "post-route-actions";
     
     const favBtn = document.createElement("img");
     favBtn.src = "favst.png";
     favBtn.className = "action-icon";
-  favBtn.onclick = saveCurrentRoute;
-    
-    const clsBtn = document.createElement("img");
-    clsBtn.src = "closest.png";
-    clsBtn.className = "action-icon";
-  clsBtn.onclick = () => {
-    resultDiv.innerHTML = ""; 
-    resultDiv.style.display = "none";
-    saveRouteMemory(false); // поля остаются в памяти, помечаем «свёрнуто»
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+    favBtn.onclick = saveCurrentRoute;
     
     const dlBtn = document.createElement("img");
     dlBtn.src = "dlst.png";
@@ -1495,7 +1557,6 @@ const actionRow = document.createElement("div");
     dlBtn.onclick = saveAsImage;
     
     actionRow.appendChild(favBtn);
-    actionRow.appendChild(clsBtn);
     actionRow.appendChild(dlBtn);
     
     resultDiv.appendChild(actionRow);
@@ -1505,6 +1566,10 @@ const actionRow = document.createElement("div");
 
 // 4. Отрисовка пути (на основе locationsDB)
 function renderPathVisuals(pathIds, container, targets = []) {
+    const countDiv = document.createElement("div");
+    countDiv.style = "color: #f1f5f9; font-size: 1.25rem; margin-bottom: 20px; font-weight: bold; width: 100%; text-align: center; grid-column: 1 / -1;";
+    countDiv.innerText = `Количество переходов: ${pathIds.length - 1}`;
+    container.appendChild(countDiv);
     let visitedTargets = new Set();
     let currentGeo = localStorage.getItem('cwGeoBookmark');
     let currentPins = JSON.parse(localStorage.getItem('cwPinBookmarks') || '[]');
