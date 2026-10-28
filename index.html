@@ -63,7 +63,7 @@
             background-repeat: repeat-y;
             /* 175px - это половина поля (350/2), плюс 20px на отступ слева */
             background-position: calc(50% - 195px) top; 
-            background-size: 4px auto; /* Настрой толщину: 4px, 6px или 8px */
+            background-size: 8px auto; /* Настрой толщину: 4px, 6px или 8px */
             border-left: none !important;
         }
         
@@ -308,7 +308,6 @@
      
     <div style="text-align: center; margin: 1.5rem 0;">
         <img src="bildst.png" alt="Построить маршрут" class="main-btn-img" onclick="calculateRoute()">
-        <span onclick="document.getElementById('result').style.display='none'; saveRouteMemory(false);" style="color: #94a3b8; cursor: pointer; text-decoration: underline; font-size: 1rem; display: inline-block; margin-top: 15px; transition: color 0.2s;" onmouseover="this.style.color='#cbd5e1'" onmouseout="this.style.color='#94a3b8'">Свернуть построенный маршрут</span>
     </div>
     
     <div class="two-cols-wrapper">
@@ -1584,6 +1583,16 @@ function calculateRoute() {
     favBtn.src = "favst.png";
     favBtn.className = "action-icon";
     favBtn.onclick = saveCurrentRoute;
+
+    const clsBtn = document.createElement("img");
+    clsBtn.src = "closest.png";
+    clsBtn.className = "action-icon";
+   clsBtn.onclick = () => {
+        resultDiv.innerHTML = ""; 
+        resultDiv.style.display = "none"; 
+        localStorage.removeItem('cwFullRoute'); 
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
     
     const dlBtn = document.createElement("img");
     dlBtn.src = "dlst.png";
