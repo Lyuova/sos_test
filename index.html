@@ -63,7 +63,7 @@
             background-repeat: repeat-y;
             /* 175px - это половина поля (350/2), плюс 20px на отступ слева */
             background-position: calc(50% - 195px) top; 
-            background-size: 8px auto; /* Настрой толщину: 4px, 6px или 8px */
+            background-size: 10px auto; 
             border-left: none !important;
         }
         
@@ -1600,6 +1600,7 @@ function calculateRoute() {
     dlBtn.onclick = saveAsImage;
     
     actionRow.appendChild(favBtn);
+     actionRow.appendChild(clsBtn);
     actionRow.appendChild(dlBtn);
     
     resultDiv.appendChild(actionRow);
