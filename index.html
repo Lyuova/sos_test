@@ -47,7 +47,15 @@
             padding: 15px; display: flex; flex-direction: column; align-items: center;
             position: relative;
         }
-        .step-title { color: #38bdf8; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
+       .step-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .step-title { color: #38bdf8; font-weight: bold; font-size: 1.1rem; margin: 0; }
         .steppe-grid {
             display: grid; grid-template-columns: repeat(10, 20px);
             grid-template-rows: repeat(6, 30px); gap: 4px;
@@ -153,12 +161,23 @@
         .highlight-target-repeat {
             border: 2px solid rgba(74, 222, 128, 0.4) !important;
         }
-        .goal-icon {
-            height: clamp(24px, 5vw, 30px);
+ .goal-icon {
+            height: clamp(28px, 6vw, 36px);
             width: auto;
             object-fit: contain;
             flex-shrink: 0;
         }
+        .bkm-icon {
+            height: clamp(24px, 5vw, 32px);
+            width: auto;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: 0.2s;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        .bkm-icon:hover { opacity: 0.7; transform: scale(1.1); }
+        .bkm-icon.active { opacity: 1; } 
         
     .logo-img { max-width: 100%; height: clamp(140px, 28vw, 250px); object-fit: contain; }
         .input-icon { height: clamp(35px, 7vw, 45px); width: auto; cursor: pointer; transition: opacity 0.2s; object-fit: contain; flex-shrink: 0; }
@@ -170,22 +189,6 @@
         .tab-img { height: clamp(75px, 15vw, 105px); width: auto; cursor: pointer; margin: 10px auto; display: block; max-width: 100%; transition: opacity 0.2s; object-fit: contain; }
         .tab-img:hover { opacity: 0.8; }
         .post-route-actions { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 20px; grid-column: 1 / -1; width: 100%; flex-wrap: wrap; }
-    .bookmarks-bar {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 8px;
-        }
-        .bkm-icon {
-            height: clamp(18px, 4vw, 25px);
-            width: auto;
-            cursor: pointer;
-            opacity: 0.3;
-            transition: 0.2s;
-        }
-        .bkm-icon:hover { opacity: 0.7; transform: scale(1.1); }
-        .bkm-icon.active { opacity: 1; filter: drop-shadow(0 0 5px #38bdf8); }
     </style>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
@@ -1465,8 +1468,7 @@ const actionRow = document.createElement("div");
 // 4. Отрисовка пути (на основе locationsDB)
 function renderPathVisuals(pathIds, container, targets = []) {
     let visitedTargets = new Set();
-    
-    // Подгружаем сохраненные закладки
+
     let currentGeo = localStorage.getItem('cwGeoBookmark');
     let currentPins = JSON.parse(localStorage.getItem('cwPinBookmarks') || '[]');
 
@@ -1475,10 +1477,31 @@ function renderPathVisuals(pathIds, container, targets = []) {
         const stepDiv = document.createElement("div");
         stepDiv.className = "step-container";
         
-        // --- Блок закладок ---
-        const bkmBar = document.createElement("div");
-        bkmBar.className = "bookmarks-bar";
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "step-header";
         
+        // 1. Название степи
+        const title = document.createElement("div");
+        title.className = "step-title";
+        title.innerText = `Степь ${nodeId}`;
+        headerDiv.appendChild(title);
+        
+        // 2. Иконка Цели (если есть) и обводка
+        if (index !== 0 && targets.includes(String(nodeId))) {
+            if (!visitedTargets.has(String(nodeId))) {
+                stepDiv.classList.add('highlight-target');
+                visitedTargets.add(String(nodeId));
+                
+                const goalIcon = document.createElement("img");
+                goalIcon.src = "goal.png";
+                goalIcon.className = "goal-icon";
+                headerDiv.appendChild(goalIcon);
+            } else {
+                stepDiv.classList.add('highlight-target-repeat');
+            }
+        }
+        
+        // 3. Закладка Гео
         const geoIcon = document.createElement("img");
         geoIcon.src = "geo.png";
         geoIcon.className = "bkm-icon" + (currentGeo === String(nodeId) ? " active" : "");
@@ -1488,11 +1511,13 @@ function renderPathVisuals(pathIds, container, targets = []) {
                 geoIcon.classList.remove('active');
             } else {
                 localStorage.setItem('cwGeoBookmark', String(nodeId));
-                document.querySelectorAll('.bkm-icon[src="geo.png"]').forEach(img => img.classList.remove('active'));
+                document.querySelectorAll('.bkm-icon[src$="geo.png"]').forEach(img => img.classList.remove('active'));
                 geoIcon.classList.add('active');
             }
         };
+        headerDiv.appendChild(geoIcon);
 
+        // 4. Закладка Пин
         const pinIcon = document.createElement("img");
         pinIcon.src = "pin.png";
         pinIcon.className = "bkm-icon" + (currentPins.includes(String(nodeId)) ? " active" : "");
@@ -1507,36 +1532,9 @@ function renderPathVisuals(pathIds, container, targets = []) {
             }
             localStorage.setItem('cwPinBookmarks', JSON.stringify(pins));
         };
+        headerDiv.appendChild(pinIcon);
 
-        bkmBar.appendChild(geoIcon);
-        bkmBar.appendChild(pinIcon);
-        stepDiv.appendChild(bkmBar);
-        // --- Конец блока закладок ---
-
-        const title = document.createElement("div");
-        title.className = "step-title";
-        title.innerText = `Степь ${nodeId}`;
-        
-        if (index !== 0 && targets.includes(String(nodeId))) {
-            if (!visitedTargets.has(String(nodeId))) {
-                stepDiv.classList.add('highlight-target');
-                visitedTargets.add(String(nodeId));
-                
-                title.style.display = "flex";
-                title.style.alignItems = "center";
-                title.style.justifyContent = "center";
-                title.style.gap = "8px";
-                
-                const icon = document.createElement("img");
-                icon.src = "goal.png";
-                icon.className = "goal-icon";
-                title.appendChild(icon);
-            } else {
-                stepDiv.classList.add('highlight-target-repeat');
-            }
-        }
-        
-        stepDiv.appendChild(title);
+        stepDiv.appendChild(headerDiv);
         
         const gridDiv = document.createElement("div");
         gridDiv.className = "steppe-grid";
@@ -1561,7 +1559,7 @@ function renderPathVisuals(pathIds, container, targets = []) {
         container.appendChild(stepDiv);
     });
 }
-
+    
 // 5. Отрисовка для просмотрщика (Viewer)
 function renderViewer(forceNum = null) {
     const num = forceNum || document.getElementById('viewerInput').value.trim();
