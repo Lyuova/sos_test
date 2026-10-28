@@ -85,6 +85,15 @@
             gap: 8px;
             padding-left: 10px;
         }
+
+        .step-icons-left {
+            grid-column: 1; /* Строго слева от заголовка */
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* Прижимаем вплотную к тексту по центру */
+            gap: 8px;
+            padding-right: 10px;
+        }
         
         .steppe-grid {
             display: grid; grid-template-columns: repeat(10, 20px);
@@ -1508,16 +1517,22 @@ function renderPathVisuals(pathIds, container, targets = []) {
         const headerDiv = document.createElement("div");
         headerDiv.className = "step-header";
         
+        // Создаем блок для иконок слева (для goal.png)
+        const iconsLeftDiv = document.createElement("div");
+        iconsLeftDiv.className = "step-icons-left";
+        headerDiv.appendChild(iconsLeftDiv);
+        
+        // 1. Название степи (по центру)
         const title = document.createElement("div");
         title.className = "step-title";
         title.innerText = `Степь ${nodeId}`;
         headerDiv.appendChild(title);
         
-        // Создаем блок для иконок (справа)
+        // Создаем блок для иконок справа (для geo и pin)
         const iconsDiv = document.createElement("div");
         iconsDiv.className = "step-icons";
         
-        // Иконка Цели
+        // Иконка Цели (добавляется в левый блок!)
         if (index !== 0 && targets.includes(String(nodeId))) {
             if (!visitedTargets.has(String(nodeId))) {
                 stepDiv.classList.add('highlight-target');
@@ -1525,13 +1540,13 @@ function renderPathVisuals(pathIds, container, targets = []) {
                 const goalIcon = document.createElement("img");
                 goalIcon.src = "goal.png";
                 goalIcon.className = "goal-icon";
-                iconsDiv.appendChild(goalIcon);
+                iconsLeftDiv.appendChild(goalIcon); // <--- Теперь она слева
             } else {
                 stepDiv.classList.add('highlight-target-repeat');
             }
         }
         
-        // Иконка Гео
+        // Иконка Гео (остается справа)
         const geoIcon = document.createElement("img");
         geoIcon.src = "geo.png";
         geoIcon.className = "bkm-icon" + (currentGeo === String(nodeId) ? " active" : "");
@@ -1547,7 +1562,7 @@ function renderPathVisuals(pathIds, container, targets = []) {
         };
         iconsDiv.appendChild(geoIcon);
 
-        // Иконка Пин
+        // Иконка Пин (остается справа)
         const pinIcon = document.createElement("img");
         pinIcon.src = "pin.png";
         pinIcon.className = "bkm-icon" + (currentPins.includes(String(nodeId)) ? " active" : "");
